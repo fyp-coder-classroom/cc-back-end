@@ -1,19 +1,14 @@
 import express from "express";
 import cors from "cors";
-import classroomRoutes from "./routes/classroomRoute";
+import authRoutes from "./routes/auth.route";
 
 const app = express();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Routes
-app.use("/api/classrooms", classroomRoutes);
-
-// Health check endpoint (for testing)
-app.get("/api/health", (req, res) => {
-  res.status(200).json({ message: "Server is running" });
-});
+app.use("/api/auth", authRoutes);
 
 export default app;
