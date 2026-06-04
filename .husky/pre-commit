@@ -1,0 +1,8 @@
+#!/bin/sh
+
+# Husky v10 no longer needs the deprecated husky.sh loader
+# So remove the line below:
+# . "$(dirname "$0")/_/husky.sh"
+
+pnpm run lint
+pnpm run test -- --passWithNoTests
