@@ -1,13 +1,38 @@
-import dotenv from "dotenv";
-dotenv.config();
-
+import type { Server } from "node:http";
+import mongoose from "mongoose";
 import app from "./app";
-import connectDB from "./config/db";
+import { env } from "./config/env";
+import { logger } from "./config/logger";
+let server: Server;
 
-const PORT = process.env.PORT || 5000;
+mongoose
+  .connect(env.mongoose.url)
+  .then(() => {
+    logger.info("Connected to MongoDB");
+    server = app.listen(env.port, () => {
+      logger.info(`Listening to port ${env.port}`);
+    });
+  })
+  .catch(() => {
+    logger.error("Error connecting to MongoDB");
+    process.exit(1);
+  });
 
-connectDB();
+const exitHandler = () => {
+  if (server) {
+    server.close(() => {
+      process.exit(1);
+    });
+  } else {
+    process.exit(1);
+  }
+};
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+const unexpectedErrorHandler = (error: unknown) => {
+  logger.error(error);
+  exitHandler();
+};
+
+process.on("uncaughtException", unexpectedErrorHandler);
+process.on("unhandledRejection", unexpectedErrorHandler);
+process.on("SIGTERM", exitHandler);

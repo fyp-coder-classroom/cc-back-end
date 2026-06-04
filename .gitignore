@@ -1,6 +1,7 @@
 
 # dependencies directives
-node_modules
+node_modules/
+jspm_packages/
 
 # envirnoment variables
 .env

@@ -1,82 +1,47 @@
-import { Request, Response } from "express";
-import { AuthService } from "../services/auth.service";
+import { Request, RequestHandler, Response } from "express";
+import AuthService from "../services/auth.service";
+import httpStatus from "http-status";
 
-export const AuthController = {
+const register: RequestHandler = async (req: Request, res: Response) => {
+  const { name, email, password, role } = req.body;
 
-  async register(req: Request, res: Response) {
-    try {
-      const { name, email, password, role } = req.body;
+  const result = await AuthService.register({
+    name,
+    email,
+    password,
+    role,
+  });
 
-      if (!name || !email || !password || !role) {
-        res.status(400).json({ message: "All fields are required" });
-        return;
-      }
+  res.status(httpStatus.OK).json(result);
+};
 
-      const result = await AuthService.register({ name, email, password, role });
+const login: RequestHandler = async (req: Request, res: Response) => {
+  const { email, password } = req.body;
 
-      res.status(201).json({
-        message: "User registered successfully",
-        ...result,
-      });
-    } catch (error: any) {
-      res.status(400).json({ message: error.message });
-    }
-  },
+  const result = await AuthService.login(email, password);
 
-  async login(req: Request, res: Response) {
-    try {
-      const { email, password } = req.body;
+  res.status(httpStatus.OK).json(result);
+};
 
-      if (!email || !password) {
-        res.status(400).json({ message: "Email and password are required to login" });
-        return;
-      }
+const logout: RequestHandler = async (req: Request, res: Response) => {
+  const { refreshToken } = req.body;
 
-      const result = await AuthService.login(email, password);
+  const result = await AuthService.logout(refreshToken);
 
-      res.status(200).json({
-        message: "Login successful",
-        ...result,
-      });
-    } catch (error: any) {
-      res.status(401).json({ message: error.message });
-    }
-  },
+  res.status(httpStatus.OK).json(result);
+};
 
-  async logout(req: Request, res: Response) {
-    try {
-      const { refreshToken } = req.body;
+const refreshToken: RequestHandler = async (req: Request, res: Response) => {
+  const { refreshToken } = req.body;
 
-      if (!refreshToken) {
-        res.status(400).json({ message: "Refresh token is required" });
-        return;
-      }
+  const result = await AuthService.refreshToken(refreshToken);
 
-      const result = await AuthService.logout(refreshToken);
+  res.status(httpStatus.OK).json(result);
+};
 
-      res.status(200).json(result);
-    } catch (error: any) {
-      res.status(400).json({ message: error.message });
-    }
-  },
-
-  async refreshToken(req: Request, res: Response){
-    try {
-      const { refreshToken } = req.body;
-
-      if (!refreshToken) {
-        res.status(400).json({ message: "Refresh token is required" });
-        return;
-      }
-
-      const result = await AuthService.refreshToken(refreshToken);
-
-      res.status(200).json({
-        message: "Access token refreshed successfully",
-        ...result,
-      });
-    } catch (error: any) {
-      res.status(401).json({ message: error.message });
-    }
-  },
+export default {
+  register,
+  login,
+  logout,
+  refreshToken,
 };
