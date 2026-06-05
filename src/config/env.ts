@@ -20,6 +20,11 @@ const envVarsSchema = Joi.object()
       .default(10)
       .description("minutes after which reset password token expires"),
     JWT_VERIFY_EMAIL_EXPIRATION_MINUTES: Joi.number(),
+    PASSWORD_SALT: Joi.number()
+      .default(10)
+      .description(
+        "salt to keep the the password hashes unique and hard to guess",
+      ),
     SMTP_HOST: Joi.string(),
     SMTP_PORT: Joi.number(),
     SMTP_USERNAME: Joi.string(),
@@ -51,6 +56,7 @@ export const env = {
       envVars.JWT_RESET_PASSWORD_EXPIRATION_MINUTES,
     verifyEmailExpirationMinutes: envVars.JWT_VERIFY_EMAIL_EXPIRATION_MINUTES,
   },
+  passwordSalt: envVars.PASSWORD_SALT,
   email: {
     smtp: {
       host: envVars.SMTP_HOST,

@@ -1,140 +1,69 @@
 import bcrypt from "bcryptjs";
 import User from "../models/user.model";
-import { IUser } from "../types/user.type";
+import { CreateUser, IUser } from "../types/user.type";
 import Token from "../models/token.model";
 import tokenService from "./token.service";
+import userService from "./user.service";
+import httpStatus from "http-status";
+import { ApiError } from "@/utils";
+import { tokenTypes } from "@/config/token";
+import { logger } from "@/config/logger";
 
-const register = async (
-  data: Pick<IUser, "name" | "email" | "password" | "role">,
-) => {
-  const existingUser = await User.findOne({ email: data.email });
-  if (existingUser) {
-    throw new Error("Amount with this email already exists");
-  }
+const register = async (data: CreateUser) => {
+  const user = await userService.createUser(data);
 
-  const hashedPassword = await bcrypt.hash(data.password, 10);
-
-  const user = new User({
-    name: data.name,
-    email: data.email,
-    password: hashedPassword,
-    role: data.role,
-  });
-
-  await user.save();
-
-  const accessToken = tokenService.generateAccessToken(
-    user._id.toString(),
-    user.role,
-  );
-  const refreshToken = tokenService.generateRefreshToken(user._id.toString());
-
-  // storing refresh token
-  await Token.create({
-    userId: user._id.toString(),
-    type: "refresh",
-    token: refreshToken,
-  });
+  const authTokens = await tokenService.generateAuthTokens(user);
 
   return {
-    accessToken,
-    refreshToken,
-    user: {
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-    },
+    user,
+    authTokens,
   };
 };
 
 const login = async (email: string, password: string) => {
-  const user = await User.findOne({ email });
+  const user = await userService.getUserByEmail(email, true);
   if (!user) {
-    throw new Error("Invalid email or password");
+    throw new ApiError(httpStatus.UNAUTHORIZED, "Invalid Email or Password !");
   }
 
-  // bcrypt extracts salt from stored hash automatically — no need to pass salt
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) {
-    throw new Error("Invalid email or password");
+    throw new ApiError(httpStatus.UNAUTHORIZED, "Invalid Email or Password !");
   }
 
   // Deleting all previous tokens (if any exists)
-  await Token.deleteMany({ userId: user._id.toString() });
+  await Token.deleteMany({ user: user._id });
 
-  const accessToken = tokenService.generateAccessToken(
-    user._id.toString(),
-    user.role,
-  );
-  const refreshToken = tokenService.generateRefreshToken(user._id.toString());
-
-  // storing refresh token
-  await Token.create({
-    userId: user._id.toString(),
-    type: "refresh",
-    token: refreshToken,
-  });
+  const authTokens = await tokenService.generateAuthTokens(user);
 
   return {
-    accessToken,
-    refreshToken,
-    user: {
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-    },
+    user,
+    authTokens,
   };
 };
 
 const logout = async (refreshToken: string) => {
-  // deleting refresh token from db
-  const deleted = await Token.findOneAndDelete({
-    type: "refresh",
+  await tokenService.deleteToken({
+    type: tokenTypes.REFRESH,
     token: refreshToken,
   });
-  if (!deleted) {
-    throw new Error("Invalid refresh token");
-  }
+
   return { message: "Logged out successfully" };
 };
 
-const refreshToken = async (refreshToken: string) => {
+const refreshAuth = async (refreshToken: string) => {
   try {
-    // verifying jwt
-    const decoded = jwt.verify(
+    const refreshTokenDoc = await tokenService.verifyToken(
       refreshToken,
-      process.env.JWT_REFRESH_SECRET as string,
-    ) as { userId: string };
-
-    // checking the token exisstance in db
-    const storedToken = await Token.findOne({
-      type: "refresh",
-      token: refreshToken,
-      userId: decoded.userId,
-    });
-
-    if (!storedToken) {
-      throw new Error(
-        "Refresh token not found or does not belong to this user",
-      );
-    }
-
-    const user = await User.findById(decoded.userId);
-    if (!user) {
-      throw new Error("User not found");
-    }
-
-    // generating new access token
-    const newAccessToken = tokenService.generateAccessToken(
-      user._id.toString(),
-      user.role,
+      tokenTypes.REFRESH,
     );
+    const user = await userService.getUserById(refreshTokenDoc.user.toString());
 
-    return { accessToken: newAccessToken };
-  } catch {
-    throw new Error("Invalid or expired refresh token");
+    await tokenService.deleteToken({ user: refreshTokenDoc.user });
+    return tokenService.generateAuthTokens(user);
+  } catch (error) {
+    logger.error(error);
+    throw new ApiError(httpStatus.UNAUTHORIZED, "Please authenticate");
   }
 };
 
@@ -142,5 +71,5 @@ export default {
   register,
   login,
   logout,
-  refreshToken,
+  refreshAuth,
 };

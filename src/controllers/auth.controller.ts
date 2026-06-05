@@ -31,10 +31,10 @@ const logout: RequestHandler = async (req: Request, res: Response) => {
   res.status(httpStatus.OK).json(result);
 };
 
-const refreshToken: RequestHandler = async (req: Request, res: Response) => {
+const refreshAuth: RequestHandler = async (req: Request, res: Response) => {
   const { refreshToken } = req.body;
 
-  const result = await AuthService.refreshToken(refreshToken);
+  const result = await AuthService.refreshAuth(refreshToken);
 
   res.status(httpStatus.OK).json(result);
 };
@@ -43,5 +43,5 @@ export default {
   register,
   login,
   logout,
-  refreshToken,
+  refreshAuth,
 };
