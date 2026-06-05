@@ -2,7 +2,6 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import routes from "@/routes";
-import mongoSanitize from "express-mongo-sanitize";
 import httpStatus from "http-status";
 import { ApiError } from "./utils/api-error";
 import { corsOptions } from "./config/cors";
@@ -19,13 +18,10 @@ app.use(helmet());
 // parse json request body
 app.use(express.json());
 
-// sanitize request data
-app.use(mongoSanitize());
-
 // parse urlencoded request body
 app.use(express.urlencoded({ extended: true }));
 
-app.use("/v1", routes);
+app.use("/api/v1", routes);
 // send back a 404 error for any unknown api request
 app.use((_req, _res, next) => {
   next(new ApiError(httpStatus.NOT_FOUND, "No endpoint found"));

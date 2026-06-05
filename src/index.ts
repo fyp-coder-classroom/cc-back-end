@@ -1,3 +1,5 @@
+import "dotenv/config";
+
 import type { Server } from "node:http";
 import mongoose from "mongoose";
 import app from "./app";

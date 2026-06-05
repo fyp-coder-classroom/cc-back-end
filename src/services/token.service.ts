@@ -1,20 +1,94 @@
+import Token from "@/models/token.model";
+import { IToken, JwtPayload, TokenTypes } from "@/types/token.type";
+import moment from "moment";
 import jwt from "jsonwebtoken";
+import { env } from "@/config/env";
+import { tokenTypes } from "@/config/token";
+import { IUser } from "@/types/user.type";
+import httpStatus from "http-status";
+import { ApiError } from "@/utils";
 
-const generateAccessToken = (userId: string, role: string) => {
-  return jwt.sign({ userId, role }, process.env.JWT_ACCESS_SECRET as string, {
-    expiresIn: (process.env.JWT_ACCESS_EXPIRES_IN ||
-      "15m") as jwt.SignOptions["expiresIn"],
-  });
+const generateToken = (
+  userId: string,
+  expires: moment.Moment,
+  type: TokenTypes,
+  secret = env.jwt.secret,
+) => {
+  const payload = {
+    sub: userId,
+    iat: moment().unix(),
+    exp: expires.unix(),
+    type,
+  };
+  return jwt.sign(payload, secret);
 };
 
-const generateRefreshToken = (userId: string): string => {
-  return jwt.sign({ userId }, process.env.JWT_REFRESH_SECRET as string, {
-    expiresIn: (process.env.JWT_REFRESH_EXPIRES_IN ||
-      "3d") as jwt.SignOptions["expiresIn"],
+const saveToken = async (authToken: IToken) => {
+  const tokenDoc = await Token.create(authToken);
+  return tokenDoc;
+};
+
+const verifyToken = async (token: string, type: TokenTypes) => {
+  const payload = jwt.verify(token, env.jwt.secret) as JwtPayload;
+  const tokenDoc = await Token.findOne({
+    token,
+    type,
+    user: payload.sub,
   });
+  if (!tokenDoc) {
+    throw new Error("Token not found");
+  }
+  return tokenDoc;
+};
+
+const generateAuthTokens = async (user: IUser) => {
+  const accessTokenExpires = moment().add(
+    env.jwt.accessExpirationMinutes,
+    "minutes",
+  );
+  const accessToken = generateToken(
+    user.id,
+    accessTokenExpires,
+    tokenTypes.ACCESS,
+  );
+
+  const refreshTokenExpires = moment().add(
+    env.jwt.refreshExpirationDays,
+    "days",
+  );
+  const refreshToken = generateToken(
+    user.id,
+    refreshTokenExpires,
+    tokenTypes.REFRESH,
+  );
+
+  // saving refresh token to DB
+  await saveToken({
+    user: user._id,
+    token: refreshToken,
+    type: tokenTypes.REFRESH,
+    expires: refreshTokenExpires.toDate(),
+  });
+
+  return {
+    access: {
+      token: accessToken,
+      expires: accessTokenExpires.toDate(),
+    },
+    refresh: {
+      token: refreshToken,
+      expires: refreshTokenExpires.toDate(),
+    },
+  };
+};
+
+const deleteToken = async (where: Partial<IToken>) => {
+  await Token.findOneAndDelete(where);
 };
 
 export default {
-  generateAccessToken,
-  generateRefreshToken,
+  generateAuthTokens,
+  deleteToken,
+  verifyToken,
+  saveToken,
 };

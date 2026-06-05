@@ -1,13 +1,14 @@
 import { model, Schema } from "mongoose";
-import { IUser } from "../types/user.type";
+import { IUser, IUserModel } from "../types/user.type";
 import validator from "validator";
+import { paginate, toJSON } from "./plugins";
 
 const userSchema = new Schema<IUser>(
   {
     name: {
       type: String,
       required: true,
-      trim: true
+      trim: true,
     },
 
     email: {
@@ -20,23 +21,27 @@ const userSchema = new Schema<IUser>(
         if (!validator.isEmail(value)) {
           throw new Error("Invalid email");
         }
-      }
+      },
     },
 
     role: {
       type: String,
       required: true,
-      enum: ["teacher", "student"]
+      enum: ["teacher", "student"],
     },
 
     password: {
       type: String,
-      required: true
-    }
+      required: true,
+      select: false,
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-const User = model<IUser>("User", userSchema);
+userSchema.plugin(paginate);
+userSchema.plugin(toJSON);
+
+const User = model<IUser, IUserModel>("User", userSchema);
 
 export default User;

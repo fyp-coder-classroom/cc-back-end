@@ -1,25 +1,38 @@
-import { model, Schema } from "mongoose";
-import { IToken } from "../types/user.type";
+import mongoose, { model, Schema } from "mongoose";
+import { tokenTypes } from "@/config/token";
+import { IToken } from "@/types/token.type";
+import { toJSON } from "./plugins";
 
 const tokenSchema = new Schema<IToken>(
   {
-    userId: {
-      type: String,
+    user: {
+      type: mongoose.SchemaTypes.ObjectId,
+      ref: "user",
       required: true,
-      ref: "User"
     },
     type: {
       type: String,
-      enum: ['access', 'refresh'],
-      required: true
+      enum: [
+        tokenTypes.REFRESH,
+        tokenTypes.RESET_PASSWORD,
+        tokenTypes.VERIFY_EMAIL,
+      ],
+      required: true,
+    },
+    expires: {
+      type: Date,
+      default: null,
+      required: true,
     },
     token: {
       type: String,
-      required: true
-    }
+      required: true,
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
+
+tokenSchema.plugin(toJSON);
 
 const Token = model<IToken>("Token", tokenSchema);
 export default Token;
