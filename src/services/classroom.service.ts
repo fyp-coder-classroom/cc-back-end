@@ -42,23 +42,19 @@ export const createClassroom = async (
   return classroom;
 };
 
-export const getClassroomById = async (classroomId: string): Promise<IClassroom> => {
-  const classroom = await Classroom.findById(classroomId);
-
-  if (!classroom) {
-    throw new ApiError(httpStatus.NOT_FOUND, "Classroom not found");
-  }
-
-  return classroom;
-};
-
-export const getTeacherClassrooms = async (teacherId: string): Promise<IClassroom[]> => {
-  const classrooms = await Classroom.find({ teacherId }).sort({ createdAt: -1 });
+export const getTeacherClassrooms = async (
+  teacherId: string,
+): Promise<IClassroom[]> => {
+  const classrooms = await Classroom.find({ teacherId }).sort({
+    createdAt: -1,
+  });
 
   return classrooms;
 };
 
-export const getStudentClassrooms = async (studentId: string): Promise<IClassroom[]> => {
+export const getStudentClassrooms = async (
+  studentId: string,
+): Promise<IClassroom[]> => {
   const classrooms = await Classroom.find({ students: studentId }).sort({
     createdAt: -1,
   });
@@ -155,6 +151,27 @@ export const removeStudentFromClassroom = async (
   );
 
   await classroom.save();
+
+  return classroom;
+};
+
+export const getClassroomDetails = async (classroomId: string) => {
+  const classroom = await Classroom.findById(classroomId)
+    .populate("teacherId", "name email")
+    .populate("students", "name email");
+
+  if (!classroom) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Classroom not found");
+  }
+
+  return classroom;
+};
+
+export const getClassroomById = async (classroomId: string) => {
+  const classroom = await Classroom.findById(classroomId);
+  if (!classroom) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Classroom not found");
+  }
 
   return classroom;
 };

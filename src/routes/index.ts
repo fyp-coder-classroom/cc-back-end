@@ -1,4 +1,3 @@
-
 import express from "express";
 import authRoutes from "./auth.route";
 import classroomRoutes from "./classroom.routes";
@@ -11,7 +10,7 @@ const defaultRoutes = [
     route: authRoutes,
   },
   {
-    path: "/classrooms",
+    path: "/classroom",
     route: classroomRoutes,
   },
 ];
@@ -19,6 +18,5 @@ const defaultRoutes = [
 defaultRoutes.forEach(({ path, route }) => {
   router.use(path, route);
 });
-
 
 export default router;

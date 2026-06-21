@@ -4,44 +4,17 @@ import * as ClassroomService from "@/services/classroom.service";
 
 export const createClassroom = async (req: Request, res: Response) => {
   const teacherId = (req as any).user?.id || "";
-  const userRole = (req as any).user?.role;
-
-  // Only teachers can create classrooms
-  if (userRole !== "teacher") {
-    return res.status(httpStatus.FORBIDDEN).json({
-      code: httpStatus.FORBIDDEN,
-      message: "Only teachers can create classrooms",
-    });
-  }
-
-  const classroom = await ClassroomService.createClassroom(
-    teacherId,
-    req.body,
-  );
-  res
-    .status(httpStatus.CREATED)
-    .json({ data: classroom });
+  const classroom = await ClassroomService.createClassroom(teacherId, req.body);
+  res.status(httpStatus.CREATED).json({ data: classroom });
 };
 
 export const getClassroomById = async (req: Request, res: Response) => {
+  console.log("this gets called !");
   const classroomId = (req.params.classroomId as string) || "";
-  const userId = (req as any).user?.id || "";
-  const userRole = (req as any).user?.role;
-
-  const classroom = await ClassroomService.getClassroomById(classroomId);
-
-  // Check access: teacher (owner) or student (enrolled)
-  const isTeacher = classroom.teacherId.toString() === userId;
-  const isStudent = classroom.students.some((id) => id.toString() === userId);
-
-  if (!isTeacher && !isStudent) {
-    return res.status(httpStatus.FORBIDDEN).json({
-      code: httpStatus.FORBIDDEN,
-      message: "You do not have access to this classroom",
-    });
-  }
-
-  res.status(httpStatus.OK).json({ data: classroom });
+  const classroom = await ClassroomService.getClassroomDetails(classroomId);
+  res
+    .status(httpStatus.OK)
+    .json({ message: "Classroom retrieved", data: classroom });
 };
 
 export const getTeacherClassrooms = async (req: Request, res: Response) => {
@@ -149,7 +122,7 @@ export const removeStudentFromClassroom = async (
     studentId,
     teacherId,
   );
-  res.status(httpStatus.OK).json({ data: null });
+  res.status(httpStatus.OK).json({ message: "Student removed successfully" });
 };
 
 export default {
