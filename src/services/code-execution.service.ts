@@ -1,54 +1,25 @@
 import { submitCode } from "@/lib/judge0";
+import {
+  COMPILE_ERROR_STATUS_ID,
+  ExecutionRequest,
+  ExecutionResult,
+  SUCCESS_STATUS_ID,
+  SUPPORTED_LANGUAGES,
+  SupportedLanguage,
+} from "@/types/code-execution.type";
 import { ApiError } from "@/utils";
 import httpStatus from "http-status";
-
-// Judge0 language IDs for supported languages
-// Full list: https://github.com/judge0/judge0/blob/master/docs/languages/README.md
-export const SUPPORTED_LANGUAGES = {
-  javascript: { id: 63, label: "JavaScript (Node.js 12.14.0)" },
-  python: { id: 71, label: "Python (3.8.1)" },
-  cpp: { id: 54, label: "C++ (GCC 9.2.0)" },
-} as const;
-
-export type SupportedLanguage = keyof typeof SUPPORTED_LANGUAGES;
-
-export interface ExecutionRequest {
-  sourceCode: string;
-  language: SupportedLanguage;
-  stdin?: string;
-}
-
-export interface ExecutionResult {
-  output: string | null;
-  error: string | null;
-  status: string;
-  isSuccess: boolean;
-  executionTime: string | null;
-  memoryUsed: number | null;
-}
 
 // Judge0 status IDs
 // 1 = In Queue, 2 = Processing, 3 = Accepted, 4 = Wrong Answer
 // 5 = Time Limit Exceeded, 6 = Compilation Error, 7-12 = Runtime Errors
-const SUCCESS_STATUS_ID = 3;
-const COMPILE_ERROR_STATUS_ID = 6;
 
 export const executeCode = async (
   request: ExecutionRequest,
 ): Promise<ExecutionResult> => {
   const { sourceCode, language, stdin } = request;
 
-  if (!sourceCode || sourceCode.trim() === "") {
-    throw new ApiError(httpStatus.BAD_REQUEST, "Source code cannot be empty");
-  }
-
   const languageConfig = SUPPORTED_LANGUAGES[language];
-  if (!languageConfig) {
-    throw new ApiError(
-      httpStatus.BAD_REQUEST,
-      `Unsupported language. Supported languages are: ${Object.keys(SUPPORTED_LANGUAGES).join(", ")}`,
-    );
-  }
 
   const result = await submitCode({
     source_code: sourceCode,

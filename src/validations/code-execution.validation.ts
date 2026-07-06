@@ -1,5 +1,5 @@
 import Joi from "joi";
-import { SUPPORTED_LANGUAGES } from "@/services/code-execution.service";
+import { SUPPORTED_LANGUAGES } from "@/types/code-execution.type";
 
 const executeCode = {
   body: Joi.object().keys({
