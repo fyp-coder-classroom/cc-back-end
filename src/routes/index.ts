@@ -3,6 +3,7 @@ import authRoutes from "./auth.route";
 import classroomRoutes from "./classroom.routes";
 import assignmentRoutes from "./assignment.route";
 import codeExecutionRoutes from "./code-execution.route";
+import submissionRoutes from "./submission.route";
 
 const router = express.Router();
 
@@ -19,7 +20,14 @@ const defaultRoutes = [
     path: "/classroom/:classroomId/assignment",
     route: assignmentRoutes,
   },
-  { path: "/code-execution", route: codeExecutionRoutes },
+  {
+    path: "/code-execution",
+    route: codeExecutionRoutes,
+  },
+  {
+    path: "/submission",
+    route: submissionRoutes,
+  },
 ];
 
 defaultRoutes.forEach(({ path, route }) => {
