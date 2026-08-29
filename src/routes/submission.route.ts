@@ -9,49 +9,49 @@ const router = Router();
 // POST /api/submission - Student submits assignment
 router.post(
   "/",
-  auth,
+  auth(),
   validate(submissionValidation.submitAssignment),
-  SubmissionController.submitAssignment
+  SubmissionController.submitAssignment,
 );
 
 // GET /api/submission/assignment/:assignmentId - Teacher views all submissions
 router.get(
   "/assignment/:assignmentId",
-  auth,
+  auth(),
   validate(submissionValidation.getSubmissionsByAssignment),
-  SubmissionController.getSubmissionsByAssignment
+  SubmissionController.getSubmissionsByAssignment,
 );
 
 // GET /api/submission/my/:assignmentId - Student views their own submission
 router.get(
   "/my/:assignmentId",
-  auth,
+  auth(),
   validate(submissionValidation.getStudentSubmission),
-  SubmissionController.getStudentSubmission
+  SubmissionController.getStudentSubmission,
 );
 
 // GET /api/submission/:submissionId - Get specific submission (teacher or student who submitted)
 router.get(
   "/:submissionId",
-  auth,
+  auth(),
   validate(submissionValidation.getSubmissionById),
-  SubmissionController.getSubmissionById
+  SubmissionController.getSubmissionById,
 );
 
 // PUT /api/submission/:submissionId/grade - Teacher grades submission
 router.put(
   "/:submissionId/grade",
-  auth,
+  auth(),
   validate(submissionValidation.gradeSubmission),
-  SubmissionController.gradeSubmission
+  SubmissionController.gradeSubmission,
 );
 
 // DELETE /api/submission/:submissionId - Teacher deletes submission
 router.delete(
   "/:submissionId",
-  auth,
+  auth(),
   validate(submissionValidation.deleteSubmission),
-  SubmissionController.deleteSubmission
+  SubmissionController.deleteSubmission,
 );
 
 export default router;

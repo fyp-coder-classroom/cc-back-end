@@ -3,11 +3,12 @@ import httpStatus from "http-status";
 import * as SubmissionService from "@/services/submission.service";
 
 export const submitAssignment = async (req: Request, res: Response) => {
+  console.log("got there");
   const studentId = (req as any).user?.id || "";
 
   const submission = await SubmissionService.submitAssignment(
     studentId,
-    req.body
+    req.body,
   );
 
   res.status(httpStatus.CREATED).json({ data: submission });
@@ -15,7 +16,7 @@ export const submitAssignment = async (req: Request, res: Response) => {
 
 export const getSubmissionsByAssignment = async (
   req: Request,
-  res: Response
+  res: Response,
 ) => {
   const assignmentId = (req.params.assignmentId as string) || "";
   const teacherId = (req as any).user?.id || "";
@@ -30,13 +31,14 @@ export const getSubmissionsByAssignment = async (
 
   const submissions = await SubmissionService.getSubmissionsByAssignment(
     assignmentId,
-    teacherId
+    teacherId,
   );
 
   res.status(httpStatus.OK).json({ data: submissions });
 };
 
 export const getStudentSubmission = async (req: Request, res: Response) => {
+  console.log("user came there");
   const studentId = (req as any).user?.id || "";
   const assignmentId = (req.params.assignmentId as string) || "";
   const userRole = (req as any).user?.role;
@@ -50,7 +52,7 @@ export const getStudentSubmission = async (req: Request, res: Response) => {
 
   const submission = await SubmissionService.getStudentSubmission(
     studentId,
-    assignmentId
+    assignmentId,
   );
 
   res.status(httpStatus.OK).json({ data: submission });
@@ -64,7 +66,7 @@ export const getSubmissionById = async (req: Request, res: Response) => {
   const submission = await SubmissionService.getSubmissionById(
     submissionId,
     userId,
-    userRole
+    userRole,
   );
 
   res.status(httpStatus.OK).json({ data: submission });
@@ -85,7 +87,7 @@ export const gradeSubmission = async (req: Request, res: Response) => {
   const submission = await SubmissionService.gradeSubmission(
     submissionId,
     teacherId,
-    req.body
+    req.body,
   );
 
   res.status(httpStatus.OK).json({ data: submission });
