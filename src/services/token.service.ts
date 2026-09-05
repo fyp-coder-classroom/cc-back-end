@@ -7,19 +7,20 @@ import { tokenTypes } from "@/config/token";
 import { IUser } from "@/types/user.type";
 import httpStatus from "http-status";
 import { ApiError } from "@/utils";
+import { Types } from "mongoose";
 
 const generateToken = (
-  userId: string,
+  userId: Types.ObjectId,
   expires: moment.Moment,
   type: TokenTypes,
-  role: string,              // ← ADD THIS
-  email: string,             // ← ADD THIS
+  role: string, // ← ADD THIS
+  email: string, // ← ADD THIS
   secret = env.jwt.secret,
 ) => {
   const payload = {
     sub: userId,
-    role,                      // ← ADD THIS
-    email,                     // ← ADD THIS
+    role, // ← ADD THIS
+    email, // ← ADD THIS
     iat: moment().unix(),
     exp: expires.unix(),
     type,
@@ -51,11 +52,11 @@ const generateAuthTokens = async (user: IUser) => {
     "minutes",
   );
   const accessToken = generateToken(
-    user.id,
+    user._id,
     accessTokenExpires,
     tokenTypes.ACCESS,
-    user.role,              // ← PASS ROLE
-    user.email,             // ← PASS EMAIL
+    user.role, // ← PASS ROLE
+    user.email, // ← PASS EMAIL
   );
 
   const refreshTokenExpires = moment().add(
@@ -63,11 +64,11 @@ const generateAuthTokens = async (user: IUser) => {
     "days",
   );
   const refreshToken = generateToken(
-    user.id,
+    user._id,
     refreshTokenExpires,
     tokenTypes.REFRESH,
-    user.role,              // ← PASS ROLE
-    user.email,             // ← PASS EMAIL
+    user.role, // ← PASS ROLE
+    user.email, // ← PASS EMAIL
   );
 
   // saving refresh token to DB
