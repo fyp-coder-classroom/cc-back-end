@@ -18,7 +18,6 @@ export const executeCode = async (
   request: ExecutionRequest,
 ): Promise<ExecutionResult> => {
   const { sourceCode, language, stdin } = request;
-
   const languageConfig = SUPPORTED_LANGUAGES[language];
 
   const result = await submitCode({
@@ -26,6 +25,14 @@ export const executeCode = async (
     language_id: languageConfig.id,
     stdin: stdin || "",
   });
+
+  if (!result || !result.status || typeof result.status.id !== "number") {
+    console.error("Unexpected Judge0 response shape:", result);
+    throw new ApiError(
+      httpStatus.BAD_GATEWAY,
+      "Received an unexpected response from the code execution service",
+    );
+  }
 
   const isSuccess = result.status.id === SUCCESS_STATUS_ID;
 
