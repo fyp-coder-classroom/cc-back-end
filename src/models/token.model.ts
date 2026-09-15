@@ -16,6 +16,7 @@ const tokenSchema = new Schema<IToken>(
         tokenTypes.REFRESH,
         tokenTypes.RESET_PASSWORD,
         tokenTypes.VERIFY_EMAIL,
+        tokenTypes.OTP,
       ],
       required: true,
     },

@@ -5,6 +5,9 @@ import mongoose from "mongoose";
 import app from "./app";
 import { env } from "./config/env";
 import { logger } from "./config/logger";
+
+import "@/config/email";
+
 let server: Server;
 
 mongoose
