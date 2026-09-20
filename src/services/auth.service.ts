@@ -126,14 +126,20 @@ const refreshAuth = async (refreshToken: string) => {
 const forgetPassword = async (email: string) => {
   const user = await userService.getUserByEmail(email);
   if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+    // throw new ApiError(
+    //   httpStatus.NOT_FOUND,
+    //   "If a user with this email exists, we have sent the OTP.",
+    // );
+    return {
+      message: "If a user with this email exists, we have sent the OTP.",
+    };
   }
 
   const otp = await tokenService.generateOtpToken(user);
 
   await emailService.sendForgetPasswordOtpEmail(user.email, otp);
 
-  return { message: "Password reset OTP sent to email" };
+  return { message: "If a user with this email exists, we have sent the OTP." };
 };
 
 const verifyPasswordResetOtp = async (email: string, otp: string) => {
