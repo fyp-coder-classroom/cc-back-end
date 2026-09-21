@@ -7,7 +7,7 @@ import { STUDENT, TEACHER } from "@/config/roles";
 
 const router = Router();
 
-// POST /api/submissions - Student submits assignment
+// POST /api/submissions
 router.post(
   "/",
   auth([STUDENT]),
