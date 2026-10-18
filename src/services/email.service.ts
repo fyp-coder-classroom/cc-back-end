@@ -77,7 +77,7 @@ const sendRegistrationOtpEmail = async (
     ${otpBox(otp)}
   `;
 
-  const note = "This OTP is valid for <strong>2 minutes</strong>.";
+  const note = "This OTP is valid for <strong>3 minutes</strong>.";
   const html = baseHtmlTemplate("Verify Your Email", content, note);
 
   await sendEmail(to, subject, html);
@@ -112,7 +112,7 @@ const send2FAEmail = async (to: string, code: string): Promise<void> => {
   `;
 
   const note =
-    "This code is valid for <strong>2 minutes</strong>. If you did not attempt to log in, please secure your account immediately.";
+    "This code is valid for <strong>3 minutes</strong>. If you did not attempt to log in, please secure your account immediately.";
   const html = baseHtmlTemplate("Two-Factor Authentication", content, note);
 
   await sendEmail(to, subject, html);
