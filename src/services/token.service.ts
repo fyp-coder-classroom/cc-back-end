@@ -95,9 +95,50 @@ const deleteToken = async (where: Partial<IToken>) => {
   await Token.findOneAndDelete(where);
 };
 
+const generateOtpToken = async (user: IUser) => {
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+  const expires = moment().add(env.jwt.otpExpirationMinutes || 10, "minutes");
+
+  await Token.deleteMany({ user: user._id, type: tokenTypes.OTP });
+
+  await saveToken({
+    user: user._id,
+    token: otp,
+    type: tokenTypes.OTP,
+    expires: expires.toDate(),
+  });
+
+  return otp;
+};
+
+const verifyOtp = async (otp: string, userId: Types.ObjectId) => {
+  const tokenDoc = await Token.findOne({
+    token: otp,
+    type: tokenTypes.OTP,
+    user: userId,
+  });
+
+  if (!tokenDoc) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Invalid or Expired OTP");
+  }
+
+  if (moment().isAfter(tokenDoc.expires)) {
+    await tokenDoc.deleteOne();
+    throw new ApiError(httpStatus.BAD_REQUEST, "Invalid or Expired OTP");
+  }
+
+  await tokenDoc.deleteOne();
+
+  return true;
+};
+
 export default {
   generateAuthTokens,
   deleteToken,
   verifyToken,
   saveToken,
+  generateToken,
+  generateOtpToken,
+  verifyOtp,
 };
